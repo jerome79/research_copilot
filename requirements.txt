@@ -5,3 +5,7 @@ requests
 python-dotenv
 fastapi
 uvicorn
+# Your domain services (installed from GitHub)
+git+https://github.com/jerome79/market-sentiment-analyzer.git@v0.1.0#egg=market-sentiment-analyzer
+git+https://github.com/jerome79/risk-analysis-agent.git@v0.1.0#egg=risk-analysis-agent
+git+https://github.com/jerome79/strategy-simulator.git@v0.1.0#egg=strategy-simulator
