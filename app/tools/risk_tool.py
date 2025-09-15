@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def render_risk_result(payload: dict) -> tuple[str, pd.DataFrame, list]:
     """
     payload = {
@@ -9,7 +10,7 @@ def render_risk_result(payload: dict) -> tuple[str, pd.DataFrame, list]:
       "sources":[{"path":".../item_1a.txt","chunk_id":"..."}]
     }
     """
-    summary = payload.get("summary","(no summary)")
+    summary = payload.get("summary", "(no summary)")
     cats = pd.DataFrame(payload.get("categories", []))
     sources = payload.get("sources", [])
     return summary, cats, sources

@@ -25,3 +25,14 @@ Ask:
 “Sharpe and IC for sentiment last year”
 
 Roadmap: swap HTTP for MCP transport; containerize; add LLM router (LangGraph) and a “Research Notebook” exporter.
+
+“How this integrates with my other repos” section:
+
+“This UI imports three versioned packages from GitHub:
+
+market-sentiment-analyzer → sentiment stats
+
+risk-analysis-agent → RAG + risk classification
+
+strategy-simulator → metrics/equity curve
+All are pinned in requirements.txt to reproducible tags.”

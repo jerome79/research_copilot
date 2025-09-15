@@ -5,7 +5,20 @@ requests
 python-dotenv
 fastapi
 uvicorn
+
+langchain==0.2.16
+langchain-community==0.2.16
+chromadb==0.5.5
+
+transformers==4.43.3
+torch>=2.2
+sentencepiece>=0.2
+
+pydantic==2.7.4
+rapidfuzz==3.9.6
+sentence-transformers
+
 # Your domain services (installed from GitHub)
-git+https://github.com/jerome79/market-sentiment-analyzer.git@v0.1.0#egg=market-sentiment-analyzer
-git+https://github.com/jerome79/risk-analysis-agent.git@v0.1.0#egg=risk-analysis-agent
-git+https://github.com/jerome79/strategy-simulator.git@v0.1.0#egg=strategy-simulator
+git+https://github.com/jerome79/market-sentiment-analyzer.git@v0.1.1#egg=market-sentiment-analyzer
+git+https://github.com/jerome79/risk-analysis-agent.git@v0.1.1#egg=risk-analysis-agent
+git+https://github.com/jerome79/strategy-simulator.git@v0.1.1#egg=strategy-simulator
