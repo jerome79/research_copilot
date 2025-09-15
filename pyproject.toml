@@ -1,0 +1,34 @@
+[tool.ruff]
+line-length = 175
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "PIE", "C4", "ARG", "RUF"]
+ignore = [
+  "E203", "E402","ARG001" # keep for Black compatibility on slicing
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+combine-as-imports = true
+
+[tool.black]
+line-length = 175
+target-version = ["py310"]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "researcher_copilot"
+version = "0.1.1"
+description = "Market Sentiment Analyzer for analysts"
+requires-python = ">=3.10"
+dependencies = ["pandas","pyarrow"]
+readme = "README.md"
+authors = [{ name = "Jerome Petit", email = "jerome.petit@outlook.com" }]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+exclude = ["data*"]

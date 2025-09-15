@@ -1,8 +1,9 @@
-streamlit
-pandas
-matplotlib
+# Core UI deps
+streamlit==1.38.0
+pandas==2.2.2
+matplotlib==3.9.0
 requests
-python-dotenv
+python-dotenv==1.0.1
 fastapi
 uvicorn
 

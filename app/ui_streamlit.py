@@ -105,6 +105,73 @@ def _plot_sentiment(series_records: list[dict]) -> BytesIO | None:
     return buf
 
 
+def run_sentiment(msa_panel_stats, tickers, dfrom, dto, panel_path):
+    symbols = [s.strip() for s in tickers.split(",") if s.strip()]
+    payload = msa_panel_stats(symbols, dfrom, dto, panel_path=panel_path) if "panel_path" in msa_panel_stats.__code__.co_varnames else msa_panel_stats(symbols, dfrom, dto)
+    stats = payload.get("stats", {})
+    series = payload.get("series", [])
+    img = _plot_sentiment(series)
+    df = pd.DataFrame(series)
+    return stats, img, df
+
+
+def run_risk(risk_summarize, issuer, year, question, risk_data_dir=None):
+    if risk_data_dir:
+        os.environ["RISK_DATA_DIR"] = risk_data_dir
+    payload = risk_summarize(issuer=issuer, year=int(year), question=question)
+    summary = payload.get("summary", "(no summary)")
+    categories = pd.DataFrame(payload.get("categories", []))
+    sources = payload.get("sources", [])
+    return summary, categories, sources
+
+
+def run_strategy(strat_last_metrics, strat_run_bt_from_panel, factor, horizon, panel_path):
+    res = strat_last_metrics()
+    metrics = res.get("metrics", {}) or {}
+    curve_path = res.get("equity_curve_path")
+    if not metrics or metrics.get("IC") is None:
+        res = (
+            strat_run_bt_from_panel(panel_path=panel_path, factor=factor, horizon=int(horizon))
+            if "panel_path" in strat_run_bt_from_panel.__code__.co_varnames
+            else strat_run_bt_from_panel(factor=factor, horizon=int(horizon))
+        )
+        metrics = res.get("metrics", {})
+        curve_path = res.get("equity_curve_path")
+    return metrics, curve_path
+
+
+def get_api_status():
+    status = {
+        "sentiment": SENT_ERR is None,
+        "risk": RISK_ERR is None,
+        "strategy": STRAT_ERR is None,
+        "sentiment_err": SENT_ERR,
+        "risk_err": RISK_ERR,
+        "strategy_err": STRAT_ERR,
+    }
+    return status
+
+
+def main_block(tool, SENT_ERR, RISK_ERR, STRAT_ERR):
+    # Simulate the main block logic for testing
+    result = {}
+    if tool == "sentiment":
+        if SENT_ERR:
+            result["error"] = "Sentiment API not available. Check requirements/tags and reinstall."
+        else:
+            result["sentiment"] = True
+    elif tool == "risk":
+        if RISK_ERR:
+            result["error"] = "Risk API not available. Check requirements/tags and reinstall."
+        else:
+            result["risk"] = True
+    elif STRAT_ERR:
+        result["error"] = "Strategy API not available. Check requirements/tags and reinstall."
+    else:
+        result["strategy"] = True
+    return result
+
+
 if go:
     tool, conf, reason = route_query(q, None if force == "Auto" else force)
     st.caption(f"Routing → **{tool}** (confidence {conf:.2f}). {reason}")
@@ -113,49 +180,30 @@ if go:
         if SENT_ERR:
             st.error("Sentiment API not available. Check requirements/tags and reinstall.")
         else:
-            symbols = [s.strip() for s in tickers.split(",") if s.strip()]
-            # Call your installed public API
-            payload = (
-                msa_panel_stats(symbols, dfrom, dto, panel_path=PANEL_PATH) if "panel_path" in msa_panel_stats.__code__.co_varnames else msa_panel_stats(symbols, dfrom, dto)
-            )
+            stats, img, df = run_sentiment(msa_panel_stats, tickers, dfrom, dto, PANEL_PATH)
             st.subheader("Sentiment")
-            st.write(payload.get("stats", {}))
-            img = _plot_sentiment(payload.get("series", []))
+            st.write(stats)
             if img:
                 st.image(img)
-            st.dataframe(pd.DataFrame(payload.get("series", [])).head(200), use_container_width=True)
+            st.dataframe(df.head(200), use_container_width=True)
 
     elif tool == "risk":
         if RISK_ERR:
             st.error("Risk API not available. Check requirements/tags and reinstall.")
         else:
-            # If your risk public_api uses RISK_DATA_DIR, set it globally beforehand
-            if RISK_DATA_DIR:
-                os.environ["RISK_DATA_DIR"] = RISK_DATA_DIR
-            payload = risk_summarize(issuer=issuer, year=int(year), question=q)
+            summary, categories, sources = run_risk(risk_summarize, issuer, year, q, RISK_DATA_DIR)
             st.subheader("Risk Summary")
-            st.write(payload.get("summary", "(no summary)"))
+            st.write(summary)
             st.subheader("Categories")
-            st.dataframe(pd.DataFrame(payload.get("categories", [])), use_container_width=True)
+            st.dataframe(categories, use_container_width=True)
             st.subheader("Sources")
-            st.json(payload.get("sources", []))
+            st.json(sources)
 
     elif STRAT_ERR:
         st.error("Strategy API not available. Check requirements/tags and reinstall.")
     else:
+        metrics, curve_path = run_strategy(strat_last_metrics, strat_run_bt_from_panel, factor, horizon, STRAT_PANEL_PATH)
         st.subheader("Strategy Metrics")
-        # Try last_metrics first; if empty, run a quick backtest from panel
-        res = strat_last_metrics()
-        metrics = res.get("metrics", {}) or {}
-        curve_path = res.get("equity_curve_path")
-        if not metrics or metrics.get("IC") is None:
-            res = (
-                strat_run_bt_from_panel(panel_path=STRAT_PANEL_PATH, factor=factor, horizon=int(horizon))
-                if "panel_path" in strat_run_bt_from_panel.__code__.co_varnames
-                else strat_run_bt_from_panel(factor=factor, horizon=int(horizon))
-            )
-            metrics = res.get("metrics", {})
-            curve_path = res.get("equity_curve_path")
         st.write(metrics)
         if curve_path and os.path.exists(curve_path):
             st.image(curve_path, caption="Equity Curve")

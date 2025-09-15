@@ -32,15 +32,9 @@ S = Settings()
 
 
 def validate_paths() -> list[str]:
-    """
-    Validates the existence of key file and directory paths defined in Settings.
-
-    Returns:
-        list[str]: Messages indicating missing or non-existent paths.
-    """
     msgs = []
     if not S.SENTIMENT_PANEL_PATH or not Path(S.SENTIMENT_PANEL_PATH).exists():
         msgs.append(f"⚠️ SENTIMENT_PANEL_PATH not found: {S.SENTIMENT_PANEL_PATH}")
     if S.STRAT_REPORT_DIR and not Path(S.STRAT_REPORT_DIR).exists():
-        msgs.append(f"⚠️ STRAT_REPORT_DIR missing (will be created by strategy runs): {S.STRAT_REPORT_DIR}")
+        msgs.append(f"⚠️STRAT_REPORT_DIR missing: {S.STRAT_REPORT_DIR} (created by strategy runs)")
     return msgs
